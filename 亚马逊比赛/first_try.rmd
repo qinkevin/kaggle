@@ -1,0 +1,77 @@
+kaggle amazon项目
+
+```{r}
+train <- read.csv('train.csv',T,colClasses = 'factor')
+test <- read.csv('test.csv',T,colClasses = 'factor')
+class <- train[,1]
+train <- train[,-1]
+id <- test[,1]
+test <- test[,-1]
+
+n1 <- nrow(train)
+n2 <- nrow(test)
+xdata <- rbind(train,test)
+# 标注训练集和测验集
+label <- rep(1:2,c(n1,n2))
+```
+
+三万个训练数据，五万个检验数据，九个变量，需要先探索，再转换哑变量。
+```{r}
+
+# 探索
+barplot(table(xdata[,1]))
+length(table(xdata[,1])) # 7518个不同的level
+sapply(1:9,function(x) length(table(xdata[,x])))
+# sapply(1:9,function(x) barplot(table(xdata[,x])))
+
+```
+7518 4913  130  183  476  361 2951   68  361
+480  300  5  10  20  10  140  5  10
+[1] "RESOURCE"         "MGR_ID"          
+[3] "ROLE_ROLLUP_1"    "ROLE_ROLLUP_2"   
+[5] "ROLE_DEPTNAME"    "ROLE_TITLE"      
+[7] "ROLE_FAMILY_DESC" "ROLE_FAMILY"     
+[9] "ROLE_CODE"   
+
+下面是将所有X变量转为二元哑变量，并去除那些过于稀疏的变量。
+```{r}
+library(Matrix)
+library(glmnet)
+library(caret)
+xdummy <- sparse.model.matrix(~.-1, data=xdata)
+dim(xdummy)
+save.image('raw.RData')
+```
+
+先用glmnet直接建模
+```{r}
+
+train <- xdummy[label==1,]
+#train <- xdummy[1:10000,]
+test <- xdummy[label==2,]
+#test <- xdummy[10001:20000,]
+
+
+model <- cv.glmnet(x=train,
+                   y=class,
+                   family="binomial",
+                   type.measure="auc",
+                   alpha=1)
+plot(model)
+names(model)
+model$nzero # 非0变量个数
+lambda <- model$lambda.min
+model.final <- model$glmnet.fit # 最终模型
+# 输出二元
+pre <-predict(model.final,
+              newx=test,
+              s=lambda,
+              type='class')
+# 输出概率
+pret <-predict(model.final,
+              newx=test,
+              s=lambda,
+              type='response')
+
+glmnet.csv <- data.frame(id=id,ACTION=as.vector(pret))
+write.csv(glmnet.csv,file='glmnet.csv',row.names =F)

@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Amazon Employee Access Challenge</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Amazon Employee Access Challenge">
+  <meta name="author" content="Yibo Chen">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+<link rel=stylesheet href="./assets/css/zibao_slidify_en.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Amazon Employee Access Challenge</h1>
+    <h2>Predict an employee's access needs, given his/her job role</h2>
+    <p>Yibo Chen<br/>Data Scientist @ Supstat Inc</p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Agenda</h2>
+  </hgroup>
+  <article data-timings="">
+    <ol>
+<li>Introduction to the Challenge</li>
+<li>Look into the Data</li>
+<li>Model Building</li>
+<li>Summary</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the story</h3>
+
+<p><a href="http://www.kaggle.com/c/amazon-employee-access-challenge">http://www.kaggle.com/c/amazon-employee-access-challenge</a><br>
+it is all about the access we need to fulfill our daily work.</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the mission</h3>
+
+<p>build an auto-access model based on the historical data<br>
+to determine the access privilege<br>
+according to the employee&#39;s job role and the resource he applied for</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the data</h3>
+
+<p>The data consists of real historical data collected from 2010 &amp; 2011.<br>
+Employees are manually allowed or denied access to resources over time.  </p>
+
+<h3>the files</h3>
+
+<ul>
+<li>train.csv - The training set. Each row has the ACTION (ground truth), RESOURCE, and information about the employee&#39;s role at the time of approval<br></li>
+<li>test.csv - The test set for which predictions should be made.  Each row asks whether an employee having the listed characteristics should have access to the listed resource.<br></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the variables</h3>
+
+<table><thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>ACTION</td>
+<td>ACTION is 1 if the resource was approved, 0 if the resource was not</td>
+</tr>
+<tr>
+<td>RESOURCE</td>
+<td>An ID for each resource</td>
+</tr>
+<tr>
+<td>MGR_ID</td>
+<td>The EMPLOYEE ID of the manager of the current EMPLOYEE ID record</td>
+</tr>
+<tr>
+<td>ROLE_ROLLUP_1</td>
+<td>Company role grouping category id 1 (e.g. US Engineering)</td>
+</tr>
+<tr>
+<td>ROLE_ROLLUP_2</td>
+<td>Company role grouping category id 2 (e.g. US Retail)</td>
+</tr>
+<tr>
+<td>ROLE_DEPTNAME</td>
+<td>Company role department description (e.g. Retail)</td>
+</tr>
+<tr>
+<td>ROLE_TITLE</td>
+<td>Company role business title description (e.g. Senior Engineering Retail Manager)</td>
+</tr>
+<tr>
+<td>ROLE_FAMILY_DESC</td>
+<td>Company role family extended description (e.g. Retail Manager, Software Engineering)</td>
+</tr>
+<tr>
+<td>ROLE_FAMILY</td>
+<td>Company role family description (e.g. Retail Manager)</td>
+</tr>
+<tr>
+<td>ROLE_CODE</td>
+<td>Company role code; this code is unique to each role (e.g. Manager)</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-6" style="background:;">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the metric</h3>
+
+<p>AUC(area under the ROC curve)</p>
+
+<ul>
+<li>is a metric used to judge predictions in binary response (0/1) problem</li>
+<li>is only sensitive to the order determined by the predictions and not their magnitudes</li>
+<li>package <code>verification</code> or <code>ROCR</code> in R</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-7" style="background:;">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the metric</h3>
+
+<pre><code class="r">(t &lt;- data.frame(true_label=c(0,0,0,0,1,1,1,1),
+                 predict_1=c(1,2,3,4,5,6,7,8),
+                 predict_2=c(1,2,3,6,5,4,7,8),
+                 predict_3=c(1,7,6,4,5,3,2,8)))
+</code></pre>
+
+<pre><code>##   true_label predict_1 predict_2 predict_3
+## 1          0         1         1         1
+## 2          0         2         2         7
+## 3          0         3         3         6
+## 4          0         4         6         4
+## 5          1         5         5         5
+## 6          1         6         4         3
+## 7          1         7         7         2
+## 8          1         8         8         8
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-8">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article>
+    <h3>the metric</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">data.frame(true_label=t$true_label,
+           predict_2=t$predict_2,
+           predict_label=(t$predict_2&gt;=6))
+</code></pre>
+
+<pre><code>##   true_label predict_2 predict_label
+## 1          0         1         FALSE
+## 2          0         2         FALSE
+## 3          0         3         FALSE
+## 4          0         6          TRUE
+## 5          1         5         FALSE
+## 6          1         4         FALSE
+## 7          1         7          TRUE
+## 8          1         8          TRUE
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">table(t$predict_2&gt;=6,t$true_label)
+</code></pre>
+
+<pre><code>##        
+##         0 1
+##   FALSE 3 2
+##   TRUE  1 2
+</code></pre>
+
+<p>1:4<br>
+0:4<br>
+TP:2<br>
+FP:1<br>
+TPR=TP/1=0.5<br>
+FPR=FP/0=0.25</p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-9">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article>
+    <h3>the metric</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">data.frame(true_label=t$true_label,
+           predict_2=t$predict_2,
+           predict_label=(t$predict_2&gt;=5))
+</code></pre>
+
+<pre><code>##   true_label predict_2 predict_label
+## 1          0         1         FALSE
+## 2          0         2         FALSE
+## 3          0         3         FALSE
+## 4          0         6          TRUE
+## 5          1         5          TRUE
+## 6          1         4         FALSE
+## 7          1         7          TRUE
+## 8          1         8          TRUE
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">table(t$predict_2&gt;=5,t$true_label)
+</code></pre>
+
+<pre><code>##        
+##         0 1
+##   FALSE 3 1
+##   TRUE  1 3
+</code></pre>
+
+<p>1:4<br>
+0:4<br>
+TP:3<br>
+FP:1<br>
+TPR=TP/1=0.75<br>
+FPR=FP/0=0.25</p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-10" style="background:;">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the metric</h3>
+
+<p><img src="./img/roc.jpg" class="right" height=359px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-11">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article>
+    <h3>the metric</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">require(ROCR,quietly=T)
+pred &lt;- prediction(t$predict_1,t$true_label)
+performance(pred,&quot;auc&quot;)@y.values[[1]]
+</code></pre>
+
+<pre><code>## [1] 1
+</code></pre>
+
+<pre><code class="r">require(verification,quietly=T)
+roc.area(t$true_label,t$predict_1)$A
+</code></pre>
+
+<pre><code>## [1] 1
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">pred &lt;- prediction(t$predict_1,t$true_label)
+perf &lt;- performance(pred,&quot;tpr&quot;,&quot;fpr&quot;)
+plot(perf,col=2,lwd=3)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-7-1.png" title="plot of chunk unnamed-chunk-7" alt="plot of chunk unnamed-chunk-7" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-12">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article>
+    <h3>the metric</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">pred &lt;- prediction(t$predict_2,t$true_label)
+performance(pred,&quot;auc&quot;)@y.values[[1]]
+</code></pre>
+
+<pre><code>## [1] 0.875
+</code></pre>
+
+<pre><code class="r">roc.area(t$true_label,t$predict_2)$A
+</code></pre>
+
+<pre><code>## [1] 0.875
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">pred &lt;- prediction(t$predict_2,t$true_label)
+perf &lt;- performance(pred,&quot;tpr&quot;,&quot;fpr&quot;)
+plot(perf,col=2,lwd=3)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-9-1.png" title="plot of chunk unnamed-chunk-9" alt="plot of chunk unnamed-chunk-9" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-13">
+  <hgroup>
+    <h2>Introduction to the Challenge</h2>
+  </hgroup>
+  <article>
+    <h3>the metric</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">pred &lt;- prediction(t$predict_3,t$true_label)
+performance(pred,&quot;auc&quot;)@y.values[[1]]
+</code></pre>
+
+<pre><code>## [1] 0.5
+</code></pre>
+
+<pre><code class="r">roc.area(t$true_label,t$predict_3)$A
+</code></pre>
+
+<pre><code>## [1] 0.5
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">pred &lt;- prediction(t$predict_3,t$true_label)
+perf &lt;- performance(pred,&quot;tpr&quot;,&quot;fpr&quot;)
+plot(perf,col=2,lwd=3)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-11-1.png" title="plot of chunk unnamed-chunk-11" alt="plot of chunk unnamed-chunk-11" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-14" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>load data from files</h3>
+
+<p><img src="./img/id.jpg" class="right" height=140px>
+<img src="./img/y.jpg" class="right" height=140px><br>
+<img src="./img/x.jpg" class="right" height=140px>  </p>
+
+<p><img src="./img/dim.jpg" class="right" height=50px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-15" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the target</h3>
+
+<pre><code class="r">table(y,useNA=&quot;ifany&quot;)
+</code></pre>
+
+<pre><code>## y
+##     0     1  &lt;NA&gt; 
+##  1897 30872 58921
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-16" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>the predictor</h3>
+
+<p><img src="./img/x.jpg" class="right" height=140px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-17" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>treat the features as Categorical or Numerical?</h3>
+
+<pre><code class="r">sapply(x,function(z){length(unique(z))})
+</code></pre>
+
+<pre><code>##         resource           mgr_id    role_rollup_1    role_rollup_2 
+##             7518             4913              130              183 
+##    role_deptname       role_title role_family_desc      role_family 
+##              476              361             2951               68 
+##        role_code 
+##              361
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-18" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">par(mar=c(5,4,0,2))
+plot(x$role_title,x$role_code)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-15-1.png" title="plot of chunk unnamed-chunk-15" alt="plot of chunk unnamed-chunk-15" style="display: block; margin: auto;" /></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-19" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">length(unique(x$role_title))
+</code></pre>
+
+<pre><code>## [1] 361
+</code></pre>
+
+<pre><code class="r">length(unique(x$role_code))
+</code></pre>
+
+<pre><code>## [1] 361
+</code></pre>
+
+<pre><code class="r">length(unique(paste(x$role_code,x$role_title)))
+</code></pre>
+
+<pre><code>## [1] 361
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-20" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">x &lt;- x[,names(x) != &quot;role_code&quot;]
+</code></pre>
+
+<pre><code class="r">sapply(x,function(z){length(unique(z))})
+</code></pre>
+
+<pre><code>##         resource           mgr_id    role_rollup_1    role_rollup_2 
+##             7518             4913              130              183 
+##    role_deptname       role_title role_family_desc      role_family 
+##              476              361             2951               68
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-21">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article>
+    <h3>check the distribution - role_family_desc</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">hist(train$role_family_desc,breaks=100)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-20-1.png" title="plot of chunk unnamed-chunk-20" alt="plot of chunk unnamed-chunk-20" style="display: block; margin: auto;" /></p>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">hist(test$role_family_desc,breaks=100)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-21-1.png" title="plot of chunk unnamed-chunk-21" alt="plot of chunk unnamed-chunk-21" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-22">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article>
+    <h3>check the distribution - resource</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">hist(train$resource,breaks=100)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-22-1.png" title="plot of chunk unnamed-chunk-22" alt="plot of chunk unnamed-chunk-22" style="display: block; margin: auto;" /></p>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">hist(test$resource,breaks=100)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-23-1.png" title="plot of chunk unnamed-chunk-23" alt="plot of chunk unnamed-chunk-23" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-23">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article>
+    <h3>check the distribution - mgr_id</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">hist(train$mgr_id,breaks=100)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-24-1.png" title="plot of chunk unnamed-chunk-24" alt="plot of chunk unnamed-chunk-24" style="display: block; margin: auto;" /></p>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">hist(test$mgr_id,breaks=100)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-25-1.png" title="plot of chunk unnamed-chunk-25" alt="plot of chunk unnamed-chunk-25" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-24" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>treat the features as Categorical or Numerical?</h3>
+
+<p>YetiMan shared his findings in the forum:</p>
+
+<ul>
+<li>1) My analyses so far leads me to believe that there is &quot;information&quot; in some of the categorical labels themselves.  My hunch is that they imply some sort of chronology, but I can&#39;t be certain.</li>
+<li>2) Just for fun I increased the max classes for R&#39;s gbm package to 8192 and built a model (using plain vanilla training data).  The leader board result was 0.87 - slightly worse than the all-numeric gbm.  Food for thought.</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-25" style="background:;">
+  <hgroup>
+    <h2>Look into the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>our approach</h3>
+
+<ol>
+<li>treat all features as Categorical</li>
+<li>treat all features as Numerical</li>
+<li>treat <code>mgr_id</code> as Numerical, the others as Categorical</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-26" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>workflow</h3>
+
+<ul>
+<li>Feature Extraction</li>
+<li>Base Learners</li>
+<li>Ensemble</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-27" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>workflow</h3>
+
+<p><img src="./img/workflow.jpg" class="right" height=500px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-28" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Feature Extraction</h3>
+
+<ol>
+<li>the raw features(as numerical)</li>
+<li>the raw features(as categorical) with level reduction</li>
+<li>the dummies(in sparse Matrix)</li>
+<li>the dummies including the interaction</li>
+<li>some derived variables(count &amp; ratio)</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-29" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>1. the raw features(as numerical)</h3>
+
+<p><img src="./img/x.jpg" class="right" height=140px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-30" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>2. the raw features(as categorical) with level reduction</h3>
+
+<h4>2.1 choose the top frequency categories</h4>
+
+<pre><code class="r">for(i in 1:ncol(x)){
+  the_labels &lt;- names(sort(table(x[,i]),decreasing=T)[1:2])
+  x[!x[,i] %in% the_labels,i] &lt;- &quot;other&quot;
+}
+</code></pre>
+
+<table><thead>
+<tr>
+<th>var_raw</th>
+<th>frequency</th>
+<th>var_with_level_reduction</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>a</td>
+<td>3</td>
+<td>a</td>
+</tr>
+<tr>
+<td>a</td>
+<td>3</td>
+<td>a</td>
+</tr>
+<tr>
+<td>a</td>
+<td>3</td>
+<td>a</td>
+</tr>
+<tr>
+<td>b</td>
+<td>2</td>
+<td>b</td>
+</tr>
+<tr>
+<td>b</td>
+<td>2</td>
+<td>b</td>
+</tr>
+<tr>
+<td>c</td>
+<td>1</td>
+<td>other</td>
+</tr>
+<tr>
+<td>d</td>
+<td>1</td>
+<td>other</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-31" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>2. the raw features(as categorical) with level reduction</h3>
+
+<h4>2.2 use Pearson&#39;s Chi-squared Test</h4>
+
+<pre><code class="r">table(y$y,ifelse(x$mgr_id == 770,&quot;mgr_770&quot;,&quot;mgr_not_770&quot;))
+</code></pre>
+
+<pre><code>##    
+##     mgr_770 mgr_not_770
+##   0       5        1892
+##   1     147       30725
+</code></pre>
+
+<pre><code class="r">chisq.test(y$y,ifelse(x$mgr_id == 770,&quot;mgr_770&quot;,&quot;mgr_not_770&quot;))$p.value
+</code></pre>
+
+<pre><code>## [1] 0.2507353
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-32" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>3. the dummies(in sparse Matrix)</h3>
+
+<table><thead>
+<tr>
+<th>id</th>
+<th>var</th>
+<th>var_a</th>
+<th>var_b</th>
+<th>var_c</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>1</td>
+<td>a</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>a</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>a</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>b</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>c</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-33" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>3. the dummies(in sparse Matrix)</h3>
+
+<p>use package Matrix to create the dummies</p>
+
+<pre><code class="r">require(Matrix)
+set.seed(114)
+Matrix(sample(c(0,1),40,re=T,prob=c(0.6,0.1)),nrow=5)
+</code></pre>
+
+<pre><code>## 5 x 8 sparse Matrix of class &quot;dgCMatrix&quot;
+##                     
+## [1,] . . . 1 . . . 1
+## [2,] . 1 . . . . 1 .
+## [3,] 1 . . . . . . .
+## [4,] . . . . . 1 . .
+## [5,] . . . . . . . .
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-34" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>4. the dummies including the interaction</h3>
+
+<table><thead>
+<tr>
+<th>id</th>
+<th>m</th>
+<th>n</th>
+<th>mn_ap</th>
+<th>mn_aq</th>
+<th>mn_bp</th>
+<th>mn_bq</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>1</td>
+<td>a</td>
+<td>p</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>a</td>
+<td>p</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>a</td>
+<td>q</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>b</td>
+<td>p</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>b</td>
+<td>q</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-35" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>5. some derived variables(count &amp; ratio)</h3>
+
+<ul>
+<li>the frequency of every category</li>
+<li>the frequency of the interactions</li>
+<li>the proportion</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-36" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>5. some derived variables(count &amp; ratio)</h3>
+
+<pre><code class="r">tmp1 &lt;- cnt_1[114:117,c(&quot;c1_resource&quot;,&quot;c1_role_deptname&quot;)]
+tmp2 &lt;- cnt_2[114:117,c(&quot;c2_resource_role_deptname_cnt_ij&quot;,
+                         &quot;c2_resource_role_deptname_ratio_i&quot;,
+                         &quot;c2_resource_role_deptname_ratio_j&quot;)]
+cbind(tmp1,tmp2)
+</code></pre>
+
+<pre><code>##     c1_resource c1_role_deptname c2_resource_role_deptname_cnt_ij
+## 114           1             1645                                1
+## 115          36             1312                                4
+## 116          45              465                               24
+## 117         374             2377                              169
+##     c2_resource_role_deptname_ratio_i c2_resource_role_deptname_ratio_j
+## 114                         1.0000000                      0.0006079027
+## 115                         0.1111111                      0.0030487805
+## 116                         0.5333333                      0.0516129032
+## 117                         0.4518717                      0.0710980227
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-37" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Base Learners</h3>
+
+<ol>
+<li>Regularized Generalized Linear Model</li>
+<li>Support Vector Machine</li>
+<li>Random Forest</li>
+<li>Gradient Boosting Machine</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-38" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Ensemble</h3>
+
+<ol>
+<li>mean prediction of all models</li>
+<li>two-stage stacking
+
+<ul>
+<li>based on 5-fold cv holdout predictions</li>
+</ul></li>
+</ol>
+
+<p><img src="./img/cv.jpg" class="right" height=250px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-39" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Ensemble</h3>
+
+<ol>
+<li>mean prediction of all models</li>
+<li>two-stage stacking
+
+<ul>
+<li>based on 5-fold cv holdout predictions</li>
+<li>algorithms in level-1(Regularized Generalized Linear Model &amp; Gradient Boosting Machine)</li>
+<li>algorithms in level-2(Regularized Generalized Linear Model)</li>
+</ul></li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-40" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>1. Regularized Generalized Linear Model</h3>
+
+<ul>
+<li>generalized linear model(glm)</li>
+<li>convex penalties</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-41">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article>
+    <h3>1. Regularized Generalized Linear Model</h3>
+
+<ul>
+<li>logistic regression</li>
+</ul>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">x &lt;- sort(rnorm(100))
+set.seed(114)
+y &lt;- c(sample(x=c(0,1),size=30,prob=c(0.9,0.1),re=T),
+       sample(x=c(0,1),size=20,prob=c(0.7,0.3),re=T),
+       sample(x=c(0,1),size=20,prob=c(0.3,0.7),re=T),
+       sample(x=c(0,1),size=30,prob=c(0.1,0.9),re=T))
+m1 &lt;- lm(y~x)
+m2 &lt;- glm(y~x,family=binomial(link=logit))
+y2 &lt;- predict(m2,data=x,type=&quot;response&quot;)
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">par(mar=c(5,4,0,0))
+plot(y~x);abline(m1,lwd=3,col=2)
+points(x,y2,type=&quot;l&quot;,lwd=3,col=3)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-35-1.png" title="plot of chunk unnamed-chunk-35" alt="plot of chunk unnamed-chunk-35" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-42" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>1. Regularized Generalized Linear Model</h3>
+
+<ul>
+<li>logistic regression</li>
+</ul>
+
+<p><img src="./img/rglm_1.png" class="right" height=76px></p>
+
+<ul>
+<li>convex penalties</li>
+</ul>
+
+<p><img src="./img/rglm_2.png" class="right" height=76px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-43" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>1. Regularized Generalized Linear Model</h3>
+
+<p><img src="./img/rglm_2.png" class="right" height=76px></p>
+
+<ul>
+<li>convex penalties
+
+<ul>
+<li>L1 (lasso)</li>
+<li>L2 (ridge regression)</li>
+<li>mixture of L1&amp;L2 (elastic net)</li>
+</ul></li>
+</ul>
+
+<p><img src="./img/rglm_3.png" class="right" height=120px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-44" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>1. Regularized Generalized Linear Model</h3>
+
+<ul>
+<li>the dummies(in sparse Matrix)</li>
+<li><p>the dummies including the interaction</p></li>
+<li><p>R package:<code>glmnet</code></p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-45" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>2. Support Vector Machine(just for Diversity)</h3>
+
+<p><img src="./img/svm.jpg" class="right" height=450px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-46" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>2. Support Vector Machine(just for Diversity)</h3>
+
+<p><img src="./img/svm_1.png" class="right" height=163px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-47" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>2. Support Vector Machine(just for Diversity)</h3>
+
+<p><img src="./img/svm_2.png" class="right" height=450px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-48" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>2. Support Vector Machine(just for Diversity)</h3>
+
+<ul>
+<li>the dummies including the interaction</li>
+<li><p>some derived variables(count &amp; ratio)</p></li>
+<li><p>R package:<code>kernlab</code>,<code>e1071</code></p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-49" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>decision tree</h3>
+
+<p><img src="./img/dt.jpg" class="right" height=400px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-50" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>3. Random Forest</h3>
+
+<p>decision trees + bagging</p>
+
+<p><img src="./img/rf.jpg" class="right" height=400px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-51" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>3. Random Forest</h3>
+
+<ul>
+<li>the raw features(as numerical)</li>
+<li>the raw features(as categorical) with level reduction</li>
+<li><p>some derived variables(count &amp; ratio)</p></li>
+<li><p>R package:<code>randomForest</code></p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-52" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>4. Gradient Boosting Machine</h3>
+
+<p>decision trees + boosting</p>
+
+<p><img src="./img/gbm.jpg" class="right" height=400px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-53" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>4. Gradient Boosting Machine</h3>
+
+<ul>
+<li>the raw features(as numerical)</li>
+<li>the raw features(as categorical) with level reduction</li>
+<li><p>some derived variables(count &amp; ratio)</p></li>
+<li><p>R package:<code>gbm</code></p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-54" style="background:;">
+  <hgroup>
+    <h2>Model Building</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>final score</h3>
+
+<p><img src="./img/result.png" class="right" height=400px></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-55" style="background:;">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>some insights</h3>
+
+<table><thead>
+<tr>
+<th>Variable Name</th>
+<th>rel.inf</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>cnt2_resource_role_deptname_cnt_ij</td>
+<td>2.542974017</td>
+</tr>
+<tr>
+<td>cnt2_resource_role_rollup_2_ratio_i</td>
+<td>2.107624216</td>
+</tr>
+<tr>
+<td>cnt2_resource_role_deptname_ratio_j</td>
+<td>2.017153645</td>
+</tr>
+<tr>
+<td>cnt2_resource_role_rollup_2_ratio_j</td>
+<td>1.910465811</td>
+</tr>
+<tr>
+<td>cnt2_resource_role_family_ratio_i</td>
+<td>1.770737494</td>
+</tr>
+<tr>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr>
+<td>cnt4_resource_mgr_id_role_rollup_2_role_family_desc</td>
+<td>0.008938286</td>
+</tr>
+<tr>
+<td>cnt4_resource_role_rollup_1_role_rollup_2_role_title</td>
+<td>0.008930661</td>
+</tr>
+<tr>
+<td>cnt4_resource_mgr_id_role_rollup_1_role_family_desc</td>
+<td>0.002106958</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-56" style="background:;">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>some insights</h3>
+
+<pre><code class="r">summary(x[,c(&quot;cnt2_resource_role_deptname_cnt_ij&quot;,
+              &quot;cnt2_resource_role_deptname_ratio_j&quot;)])
+</code></pre>
+
+<pre><code>##  cnt2_resource_role_deptname_cnt_ij cnt2_resource_role_deptname_ratio_j
+##  Min.   :  1.00                     Min.   :0.0002945                  
+##  1st Qu.:  2.00                     1st Qu.:0.0061444                  
+##  Median :  7.00                     Median :0.0171569                  
+##  Mean   : 15.55                     Mean   :0.0315289                  
+##  3rd Qu.: 17.00                     3rd Qu.:0.0368098                  
+##  Max.   :201.00                     Max.   :1.0000000
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-57">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article>
+    <h3>some insights</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">xx &lt;- x[,&quot;cnt2_resource_role_deptname_cnt_ij&quot;]
+tt &lt;- t.test(xx ~ y)
+list(estimate=tt$estimate,
+     conf.int=tt$conf.int,p.value=tt$p.value)
+</code></pre>
+
+<pre><code>## $estimate
+## mean in group 0 mean in group 1 
+##        10.03901        13.81948 
+## 
+## $conf.int
+## [1] -4.851434 -2.709509
+## attr(,&quot;conf.level&quot;)
+## [1] 0.95
+## 
+## $p.value
+## [1] 5.83816e-12
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">par(mar=c(5,4,2,2))
+boxplot(xx ~ y)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-38-1.png" title="plot of chunk unnamed-chunk-38" alt="plot of chunk unnamed-chunk-38" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-58">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article>
+    <h3>some insights</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">xxx &lt;- cut(xx,include.lowest=T,
+           breaks=c(0,1,3,7,14,30,300))
+par(mar=c(5,2,0,0))
+barplot(table(xxx))
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-39-1.png" title="plot of chunk unnamed-chunk-39" alt="plot of chunk unnamed-chunk-39" style="display: block; margin: auto;" /></p>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">tb &lt;- table(y,xxx)
+r_0 &lt;- tb[1,] / colSums(tb)
+par(mar=c(5,2,0,0))
+plot(r_0,type=&quot;l&quot;,lwd=3)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-40-1.png" title="plot of chunk unnamed-chunk-40" alt="plot of chunk unnamed-chunk-40" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-59">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article>
+    <h3>some insights</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">xx &lt;- x[,&quot;cnt2_resource_role_deptname_ratio_j&quot;]
+tt &lt;- t.test(xx ~ y)
+list(estimate=tt$estimate,
+     conf.int=tt$conf.int,p.value=tt$p.value)
+</code></pre>
+
+<pre><code>## $estimate
+## mean in group 0 mean in group 1 
+##      0.01954803      0.02901646 
+## 
+## $conf.int
+## [1] -0.011731509 -0.007205341
+## attr(,&quot;conf.level&quot;)
+## [1] 0.95
+## 
+## $p.value
+## [1] 3.930315e-16
+</code></pre>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">par(mar=c(5,4,2,2))
+boxplot(xx ~ y)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-42-1.png" title="plot of chunk unnamed-chunk-42" alt="plot of chunk unnamed-chunk-42" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-60">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article>
+    <h3>some insights</h3>
+
+    <div class='left' style='float:left;width:50%'>
+     <pre><code class="r">xxx &lt;- cut(xx,include.lowest=T,
+           breaks=quantile(xx,seq(0,1,0.2)))
+par(mar=c(5,2,0,0))
+barplot(table(xxx))
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-43-1.png" title="plot of chunk unnamed-chunk-43" alt="plot of chunk unnamed-chunk-43" style="display: block; margin: auto;" /></p>
+
+    </div>
+    <div class='right' style='float:right;width:50%'>
+     <pre><code class="r">tb &lt;- table(y,xxx)
+r_0 &lt;- tb[1,] / colSums(tb)
+par(mar=c(5,2,0,0))
+plot(r_0,type=&quot;l&quot;,lwd=3)
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-44-1.png" title="plot of chunk unnamed-chunk-44" alt="plot of chunk unnamed-chunk-44" style="display: block; margin: auto;" /></p>
+
+    </div>
+  </article>
+</slide>
+<slide class="" id="slide-61" style="background:;">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>overfitting</h3>
+
+<table><thead>
+<tr>
+<th>model</th>
+<th>auc_cv</th>
+<th>auc_public</th>
+<th>auc_private</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>num_glmnet_0</td>
+<td>0.8985069</td>
+<td>0.87737</td>
+<td>0.87385</td>
+</tr>
+<tr>
+<td>stacking_gbm_with_the_glmnet</td>
+<td>0.9277316</td>
+<td>0.90695</td>
+<td>0.90478</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-62" style="background:;">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>overfitting</h3>
+
+<table><thead>
+<tr>
+<th>model</th>
+<th>auc_cv</th>
+<th>auc_public</th>
+<th>auc_private</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>num_glmnet_0</td>
+<td>0.8985069</td>
+<td>0.87737</td>
+<td>0.87385</td>
+</tr>
+<tr>
+<td>stacking_gbm_with_the_glmnet</td>
+<td>0.9277316</td>
+<td>0.90695</td>
+<td>0.90478</td>
+</tr>
+<tr>
+<td>stacking_gbm_without_the_glmnet</td>
+<td>0.9182303</td>
+<td>0.91529</td>
+<td>0.91130</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-63" style="background:;">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>overfitting</h3>
+
+<p>Winning solution code and methodology<br>
+<a href="http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/5283/winning-solution-code-and-methodology">http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/5283/winning-solution-code-and-methodology</a></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-64" style="background:;">
+  <hgroup>
+    <h2>Summary</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>useful discussions</h3>
+
+<p>Python code to achieve 0.90 AUC with Logistic Regression<br>
+<a href="http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/4838/python-code-to-achieve-0-90-auc-with-logistic-regression">http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/4838/python-code-to-achieve-0-90-auc-with-logistic-regression</a></p>
+
+<p>Starter code in python with scikit-learn (AUC .885)<br>
+<a href="http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/4797/starter-code-in-python-with-scikit-learn-auc-885">http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/4797/starter-code-in-python-with-scikit-learn-auc-885</a>  </p>
+
+<p>Patterns in Training data set<br>
+<a href="http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/4886/patterns-in-training-data-set">http://www.kaggle.com/c/amazon-employee-access-challenge/forums/t/4886/patterns-in-training-data-set</a>  </p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-65" style="background:;">
+  <hgroup>
+    <h2>thank you</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Agenda'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Introduction to the Challenge'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Introduction to the Challenge'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Introduction to the Challenge'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Introduction to the Challenge'>
+         5
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=6 title='Introduction to the Challenge'>
+         6
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=7 title='Introduction to the Challenge'>
+         7
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=8 title='Introduction to the Challenge'>
+         8
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=9 title='Introduction to the Challenge'>
+         9
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=10 title='Introduction to the Challenge'>
+         10
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=11 title='Introduction to the Challenge'>
+         11
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=12 title='Introduction to the Challenge'>
+         12
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=13 title='Introduction to the Challenge'>
+         13
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=14 title='Look into the Data'>
+         14
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=15 title='Look into the Data'>
+         15
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=16 title='Look into the Data'>
+         16
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=17 title='Look into the Data'>
+         17
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=18 title='Look into the Data'>
+         18
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=19 title='Look into the Data'>
+         19
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=20 title='Look into the Data'>
+         20
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=21 title='Look into the Data'>
+         21
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=22 title='Look into the Data'>
+         22
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=23 title='Look into the Data'>
+         23
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=24 title='Look into the Data'>
+         24
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=25 title='Look into the Data'>
+         25
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=26 title='Model Building'>
+         26
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=27 title='Model Building'>
+         27
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=28 title='Model Building'>
+         28
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=29 title='Model Building'>
+         29
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=30 title='Model Building'>
+         30
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=31 title='Model Building'>
+         31
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=32 title='Model Building'>
+         32
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=33 title='Model Building'>
+         33
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=34 title='Model Building'>
+         34
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=35 title='Model Building'>
+         35
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=36 title='Model Building'>
+         36
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=37 title='Model Building'>
+         37
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=38 title='Model Building'>
+         38
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=39 title='Model Building'>
+         39
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=40 title='Model Building'>
+         40
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=41 title='Model Building'>
+         41
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=42 title='Model Building'>
+         42
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=43 title='Model Building'>
+         43
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=44 title='Model Building'>
+         44
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=45 title='Model Building'>
+         45
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=46 title='Model Building'>
+         46
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=47 title='Model Building'>
+         47
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=48 title='Model Building'>
+         48
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=49 title='Model Building'>
+         49
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=50 title='Model Building'>
+         50
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=51 title='Model Building'>
+         51
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=52 title='Model Building'>
+         52
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=53 title='Model Building'>
+         53
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=54 title='Model Building'>
+         54
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=55 title='Summary'>
+         55
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=56 title='Summary'>
+         56
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=57 title='Summary'>
+         57
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=58 title='Summary'>
+         58
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=59 title='Summary'>
+         59
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=60 title='Summary'>
+         60
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=61 title='Summary'>
+         61
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=62 title='Summary'>
+         62
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=63 title='Summary'>
+         63
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=64 title='Summary'>
+         64
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=65 title='thank you'>
+         65
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>

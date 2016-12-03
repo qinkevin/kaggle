@@ -1,0 +1,14 @@
+h1,h2 {
+  font-family: "Oswald", "Kaushan Script", "Journal", "Mountains of Christmas", "Capture it", "Alex Brush", "ChunkFive", 'Open Sans','Helvetica', 'Crimson Text', 'Garamond',  'Palatino', sans-serif !important;
+}
+body,p,h3,h4,h5,h6,ul,ol,li,q,table,caption,tr,th,td,dl,dt,dd {
+  font-family: "Open Sans", "Microsoft YaHei UI", 'Open Sans','Helvetica', 'Crimson Text', 'Garamond',  'Palatino', sans-serif !important;
+}
+code {
+  font-family: "Yahei Mono", monospace !important;
+}
+/*
+slides > slide:not(.nobackground):after {
+  content: "";
+}
+*/
